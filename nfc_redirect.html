@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glide Profile Redirector</title>
+    <!-- Tailwind CSS for basic styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: "Inter", sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            color: #334155; /* Darker text */
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            max-width: 90%;
+            width: 500px;
+        }
+        .message {
+            margin-bottom: 1.5rem;
+            font-size: 1.125rem; /* text-lg */
+            font-weight: 500; /* font-medium */
+            color: #1e293b; /* slate-800 */
+        }
+        .countdown {
+            font-size: 2.25rem; /* text-4xl */
+            font-weight: 700; /* font-bold */
+            color: #4a90e2; /* A shade of blue */
+        }
+        .footer-note {
+            margin-top: 2rem;
+            font-size: 0.875rem; /* text-sm */
+            color: #64748b; /* slate-500 */
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container">
+        <h1 class="text-2xl font-bold mb-4 text-gray-800">Redirecting...</h1>
+        <p class="message" id="statusMessage">
+            You are being redirected to the child's Glide profile page.
+        </p>
+        <p class="countdown" id="countdown">5</p>
+        <p class="footer-note">
+            Please wait, you will be automatically returned to the Glide app home page shortly.
+        </p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const profileUrl = urlParams.get('profileUrl'); // The unique URL for the child's profile from NFC
+            const homeUrl = urlParams.get('homeUrl');       // Your main Glide app home page URL
+
+            const countdownElement = document.getElementById('countdown');
+            const statusMessageElement = document.getElementById('statusMessage');
+            let countdown = 5; // Initial countdown from 5 seconds
+
+            // Validate URLs
+            if (!profileUrl || !homeUrl) {
+                statusMessageElement.textContent = 'Error: Missing "profileUrl" or "homeUrl" in the URL.';
+                countdownElement.style.display = 'none'; // Hide countdown on error
+                console.error('Missing URL parameters. Example: ?profileUrl=YOUR_PROFILE_URL&homeUrl=YOUR_HOME_URL');
+                return; // Stop execution if URLs are missing
+            }
+
+            // Immediately redirect to the profile URL
+            console.log('Redirecting to profile page:', profileUrl);
+            window.location.href = profileUrl;
+
+            // Start countdown for return redirect
+            const countdownInterval = setInterval(() => {
+                countdown--;
+                if (countdown >= 0) {
+                    countdownElement.textContent = countdown;
+                }
+            }, 1000); // Update every second
+
+            // Redirect back to the home URL after 5 seconds
+            setTimeout(() => {
+                clearInterval(countdownInterval); // Stop the countdown
+                statusMessageElement.textContent = 'Returning to Glide app home page...';
+                console.log('Returning to home page:', homeUrl);
+                window.location.href = homeUrl;
+            }, 5000); // 5000 milliseconds = 5 seconds
+        });
+    </script>
+</body>
+</html>
