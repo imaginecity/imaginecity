@@ -10,23 +10,28 @@
         body {
             font-family: "Inter", sans-serif;
             display: flex;
+            flex-direction: column; /* Allow vertical stacking */
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             background-color: #f0f4f8; /* Light blue-gray background */
             color: #334155; /* Darker text */
+            margin: 0;
+            padding: 1rem; /* Add some padding around the edges */
+            box-sizing: border-box; /* Include padding in element's total width and height */
         }
         .container {
             background-color: #ffffff;
-            padding: 2.5rem;
+            padding: 1.5rem; /* Slightly reduced padding for tighter fit */
             border-radius: 1rem;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             text-align: center;
             max-width: 90%;
             width: 500px;
+            margin-bottom: 1rem; /* Space between message and iframe */
         }
         .message {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem; /* Reduced margin */
             font-size: 1.125rem; /* text-lg */
             font-weight: 500; /* font-medium */
             color: #1e293b; /* slate-800 */
@@ -37,62 +42,81 @@
             color: #4a90e2; /* A shade of blue */
         }
         .footer-note {
-            margin-top: 2rem;
+            margin-top: 1rem; /* Reduced margin */
             font-size: 0.875rem; /* text-sm */
             color: #64748b; /* slate-500 */
+        }
+        #glideIframe {
+            width: 100%;
+            height: calc(100vh - 180px); /* Adjust height to fill remaining space, considering header/footer */
+            border: 1px solid #cbd5e1; /* slate-300 */
+            border-radius: 0.5rem;
+            flex-grow: 1; /* Allow iframe to take available space */
+            display: block; /* Ensure it behaves like a block element */
+        }
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            #glideIframe {
+                height: calc(100vh - 160px); /* Adjust for smaller screens */
+            }
         }
     </style>
 </head>
 <body class="antialiased">
     <div class="container">
-        <h1 class="text-2xl font-bold mb-4 text-gray-800">Redirecting...</h1>
+        <h1 class="text-2xl font-bold mb-4 text-gray-800">Loading Profile...</h1>
         <p class="message" id="statusMessage">
-            You are being redirected to the child's Glide profile page.
+            Displaying child's Glide profile. This page will return to the home page in...
         </p>
         <p class="countdown" id="countdown">5</p>
-        <p class="footer-note">
-            Please wait, you will be automatically returned to the Glide app home page shortly.
+        <p class="footer-note" id="footerNote">
+            Please wait while the profile loads, then this page will redirect.
         </p>
     </div>
 
+    <iframe id="glideIframe" title="Child Profile"></iframe>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Get URL parameters
             const urlParams = new URLSearchParams(window.location.search);
-            const profileUrl = urlParams.get('profileUrl'); // The unique URL for the child's profile from NFC
-            const homeUrl = urlParams.get('homeUrl');       // Your main Glide app home page URL
+            const profileUrl = urlParams.get('profileUrl');
+            const homeUrl = urlParams.get('homeUrl');
 
             const countdownElement = document.getElementById('countdown');
             const statusMessageElement = document.getElementById('statusMessage');
+            const footerNoteElement = document.getElementById('footerNote');
+            const glideIframe = document.getElementById('glideIframe');
             let countdown = 5; // Initial countdown from 5 seconds
 
             // Validate URLs
             if (!profileUrl || !homeUrl) {
-                statusMessageElement.textContent = 'Error: Missing "profileUrl" or "homeUrl" in the URL.';
-                countdownElement.style.display = 'none'; // Hide countdown on error
-                console.error('Missing URL parameters. Example: ?profileUrl=YOUR_PROFILE_URL&homeUrl=YOUR_HOME_URL');
-                return; // Stop execution if URLs are missing
+                statusMessageElement.textContent = 'Error: Missing "profileUrl" or "homeUrl" in the URL. Please check the NFC tag programming.';
+                countdownElement.style.display = 'none';
+                footerNoteElement.textContent = 'Example: ?profileUrl=YOUR_PROFILE_URL&homeUrl=YOUR_HOME_URL';
+                console.error('Missing URL parameters.');
+                return;
             }
 
-            // Immediately redirect to the profile URL
-            console.log('Redirecting to profile page:', profileUrl);
-            window.location.href = profileUrl;
+            // Set the iframe source to the profile URL
+            console.log('Attempting to load profile in iframe:', profileUrl);
+            glideIframe.src = profileUrl;
 
-            // Start countdown for return redirect
+            // Start countdown for redirecting the iframe to the home URL
             const countdownInterval = setInterval(() => {
                 countdown--;
                 if (countdown >= 0) {
                     countdownElement.textContent = countdown;
+                } else {
+                    clearInterval(countdownInterval); // Stop countdown when it reaches zero
+                    statusMessageElement.textContent = 'Returning to Glide app home page...';
+                    footerNoteElement.textContent = 'Redirecting now.';
+                    console.log('Redirecting iframe to home page:', homeUrl);
+                    glideIframe.src = homeUrl; // Change iframe source to home URL
                 }
             }, 1000); // Update every second
-
-            // Redirect back to the home URL after 5 seconds
-            setTimeout(() => {
-                clearInterval(countdownInterval); // Stop the countdown
-                statusMessageElement.textContent = 'Returning to Glide app home page...';
-                console.log('Returning to home page:', homeUrl);
-                window.location.href = homeUrl;
-            }, 5000); // 5000 milliseconds = 5 seconds
         });
     </script>
 </body>
